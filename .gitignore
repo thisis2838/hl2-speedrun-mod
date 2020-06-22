@@ -338,3 +338,9 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+game/client/client_episodic-2005.vcxproj
+game/server/server_episodic-2005.vcxproj
+game/server/server_episodic-2005.vcxproj
+game/client/client_episodic-2005.vcxproj
+*.lastbuildstate
+*.tlog
