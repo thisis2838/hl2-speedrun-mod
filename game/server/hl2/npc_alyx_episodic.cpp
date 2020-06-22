@@ -1,3 +1,5 @@
+#ifdef HL2_EPISODIC
+
 //========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Alyx, the female sidekick and love interest that's taking the world by storm!
@@ -8,6 +10,7 @@
 //			FIXME: need a better comment block
 //
 //=============================================================================//
+
 
 #include "cbase.h"
 #include "npcevent.h"
@@ -3601,3 +3604,4 @@ AI_BEGIN_CUSTOM_NPC( npc_alyx, CNPC_Alyx )
 		);
 
 AI_END_CUSTOM_NPC()
+#endif

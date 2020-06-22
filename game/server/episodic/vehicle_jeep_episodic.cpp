@@ -1,8 +1,12 @@
+
+#ifdef HL2_EPISODIC
+
 //====== Copyright © 1996-2005, Valve Corporation, All rights reserved. =======
 //
 //
 //
 //=============================================================================
+
 
 #include "cbase.h"
 #include "vehicle_jeep_episodic.h"
@@ -1760,3 +1764,4 @@ bool CPropJeepEpisodic::AllowBlockedExit( CBaseCombatCharacter *pPassenger, int 
 	return GetSmoothedVelocity().IsLengthLessThan( jalopy_blocked_exit_max_speed.GetFloat() );
 }
 
+#endif 

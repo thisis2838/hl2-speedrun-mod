@@ -1,8 +1,11 @@
+#ifdef HL2_EPISODIC
+
 //====== Copyright © 1996-2005, Valve Corporation, All rights reserved. =======
 //
 // Purpose: Zombies on cars!
 //
 //=============================================================================
+
 
 #include "cbase.h"
 #include "npcevent.h"
@@ -876,3 +879,5 @@ AI_BEGIN_CUSTOM_SCHEDULE_PROVIDER( CAI_PassengerBehaviorZombie )
 
 		AI_END_CUSTOM_SCHEDULE_PROVIDER()
 }
+
+#endif

@@ -4,6 +4,8 @@
 //
 //=============================================================================
 
+#ifdef HL2_EPISODIC
+
 #ifndef WEAPON_STRIDERBUSTER_H
 #define WEAPON_STRIDERBUSTER_H
 #ifdef _WIN32
@@ -18,3 +20,5 @@ float StriderBuster_GetPickupTime( CBaseEntity *pEntity );
 bool StriderBuster_WasKnockedOffStrider( CBaseEntity *pEntity );
 
 #endif // WEAPON_STRIDERBUSTER_H
+
+#endif

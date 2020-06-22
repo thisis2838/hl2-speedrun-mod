@@ -344,3 +344,4 @@ game/server/server_episodic-2005.vcxproj
 game/client/client_episodic-2005.vcxproj
 *.lastbuildstate
 *.tlog
+*.tlog

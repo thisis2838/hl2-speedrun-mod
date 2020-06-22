@@ -852,6 +852,8 @@ bool CAI_PassengerBehavior::GetEntryPoint( int nSequence, Vector *vecEntryPoint,
 	return bSucceeded;
 }
 
+
+#ifdef HL2_EPISODIC
 //-----------------------------------------------------------------------------
 // Purpose: Do the low-level work to detach us from our vehicle
 //-----------------------------------------------------------------------------
@@ -891,6 +893,8 @@ void CAI_PassengerBehavior::AttachToVehicle( void )
 	// Get physics messages from our attached physics object
 	m_hVehicle->AddPhysicsChild( GetOuter() );
 }
+#endif
+
 
 //-----------------------------------------------------------------------------
 // Purpose: Handle task starting
@@ -926,6 +930,7 @@ void CAI_PassengerBehavior::StartTask( const Task_t *pTask )
 		}
 		break;
 
+#ifdef HL2_EPISODIC
 	case TASK_PASSENGER_ATTACH_TO_VEHICLE:
 		{
 			AttachToVehicle();
@@ -952,6 +957,7 @@ void CAI_PassengerBehavior::StartTask( const Task_t *pTask )
 			TaskComplete();
 		}
 		break;
+#endif
 
 	case TASK_PASSENGER_SET_IDEAL_ENTRY_YAW:
 		{
@@ -1591,6 +1597,7 @@ bool CAI_PassengerBehavior::ForceVehicleInteraction( const char *lpszInteraction
 //-----------------------------------------------------------------------------
 void CAI_PassengerBehavior::Teleport( const Vector *newPosition, const QAngle *newAngles, const Vector *newVelocity )
 {
+#ifdef HL2_EPISODIC
 	//First, safely remove me from the vehicle
 	if ( GetPassengerState() != PASSENGER_STATE_OUTSIDE )
 	{
@@ -1602,6 +1609,7 @@ void CAI_PassengerBehavior::Teleport( const Vector *newPosition, const QAngle *n
 		GetOuter()->ClearSchedule( "ai_behavior_passenger: teleport while in vehicle" );
 		Disable();
 	}
+#endif
 
 	//Then allow the teleportation
 	BaseClass::Teleport( newPosition, newAngles, newVelocity );

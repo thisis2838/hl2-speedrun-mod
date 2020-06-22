@@ -1,3 +1,5 @@
+#ifdef HL2_EPISODIC
+
 //====== Copyright © 1996-2007, Valve Corporation, All rights reserved. =======
 //
 // An ingenious device. We call it "The Magnusson Device". Not my chosen label,
@@ -1173,3 +1175,5 @@ bool StriderBuster_WasKnockedOffStrider( CBaseEntity *pEntity )
 
 	return false;
 }
+
+#endif
