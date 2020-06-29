@@ -36,6 +36,7 @@
 #include <vgui_controls/Controls.h>
 #include <vgui/ISurface.h>
 #include "ScreenSpaceEffects.h"
+#include "shared.h"
 
 #if defined( HL2_CLIENT_DLL ) || defined( CSTRIKE_DLL )
 #define USE_MONITORS
@@ -177,6 +178,48 @@ const Vector &PrevMainViewOrigin()
 const QAngle &PrevMainViewAngles()
 {
 	return g_vecPrevRenderAngles;
+}
+
+void CViewRender::DrawMirror(const CViewSetup& viewSet)
+{
+	C_BasePlayer* localPlayer = C_BasePlayer::GetLocalPlayer();
+	if (!localPlayer)
+		return;
+
+	//Copy our current View.
+	CViewSetup mirrorView = viewSet;
+
+	//Get our camera render target.
+	ITexture* pRenderTarget = GetCameraTexture();
+
+	//Our view information, Origin, View Direction, window size
+	//	location on material, and visual ratios.
+	mirrorView.width = 256;
+	mirrorView.height = 144;
+	mirrorView.x = 0;
+	mirrorView.y = 0;
+
+	//DevMsg("thing 1 %i\n ", scrwidth);
+
+	Vector add(0, 0, 64);
+
+	if (crouched)
+	{
+		add = Vector(0, 0, 36);
+	}
+
+	mirrorView.origin = havokpos + add;
+	mirrorView.angles = localPlayer->GetRenderAngles();
+	//mirrorView.angles.x -= 15;
+	mirrorView.angles.y = AngleNormalize(mirrorView.angles.y);
+	mirrorView.fov = localPlayer->GetFOV();
+	mirrorView.m_bOrtho = false;
+	mirrorView.m_flAspectRatio = 1.7777777777f;
+
+	//Set the view up and output the scene to our RenderTarget (Camera Material).
+	render->Push3DView(mirrorView, VIEW_CLEAR_DEPTH | VIEW_CLEAR_COLOR,/* true, */pRenderTarget, m_Frustum);
+	ViewDrawScene(false, SKYBOX_3DSKYBOX_VISIBLE, mirrorView, 0, VIEW_MONITOR);
+	render->PopView(m_Frustum);//pop it like it's hot
 }
 
 //-----------------------------------------------------------------------------

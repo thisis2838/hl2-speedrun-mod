@@ -19,6 +19,7 @@
 #include "soundflags.h"
 #include "engine/IEngineSound.h"
 #include "filters.h"
+#include <srtimer_handle_startandend.cpp>
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -214,6 +215,10 @@ void CEnvMicrophone::InputEnable( inputdata_t &inputdata )
 void CEnvMicrophone::InputDisable( inputdata_t &inputdata )
 {
 	m_bDisabled = true;
+
+	const char* name = GetEntityName().ToCStr();
+	TimerOperate::OperateWithName(name, "end");
+
 	if ( m_hSpeaker )
 	{
 		CBaseEntity::StopSound( m_hSpeaker->entindex(), CHAN_STATIC, m_szLastSound );

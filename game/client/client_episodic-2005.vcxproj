@@ -178,7 +178,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "bin\client.pdb"
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;"D:\Speedrun\half-life 2\source-code\hl2-speedrun-mod\game\server\Release_episodic\Server Episodic.lib";%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <OutputFile>$(OutDir)Client.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -195,7 +195,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "bin\client.pdb"
       </BaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalOptions>/FORCE /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/FORCE /SAFESEH:NO   /LIBPATH:"..\..\lib\common\." /LIBPATH:"..\..\lib\public\." %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Xdcmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -797,6 +797,8 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "bin\client.pdb"
     <ClCompile Include="ScreenSpaceEffects.cpp" />
     <ClCompile Include="simple_keys.cpp" />
     <ClCompile Include="smoke_fog_overlay.cpp" />
+    <ClCompile Include="havokmirror.cpp" />
+    <ClCompile Include="srtimer_visuals.cpp" />
     <ClCompile Include="splinepatch.cpp" />
     <ClCompile Include="spritemodel.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -1167,6 +1169,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "bin\client.pdb"
     <ClInclude Include="..\shared\sceneentity_shared.h" />
     <ClInclude Include="..\shared\scriptevent.h" />
     <ClInclude Include="..\shared\sequence_Transitioner.h" />
+    <ClInclude Include="..\shared\shared.h" />
     <ClInclude Include="..\shared\shareddefs.h" />
     <ClInclude Include="..\shared\sharedInterface.h" />
     <ClInclude Include="..\shared\shared_classnames.h" />
@@ -1310,6 +1313,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "bin\client.pdb"
     <ClInclude Include="game_controls\teammenu.h" />
     <ClInclude Include="game_controls\vguitextwindow.h" />
     <ClInclude Include="glow_overlay.h" />
+    <ClInclude Include="havokmirror.h" />
     <ClInclude Include="history_resource.h" />
     <ClInclude Include="hl2\clientmode_hlnormal.h" />
     <ClInclude Include="hl2\c_basehelicopter.h" />

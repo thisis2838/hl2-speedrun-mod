@@ -42,4 +42,7 @@ void RegisterUserMessages( void )
 	usermessages->Register( "LogoTimeMsg", 4 );
 	usermessages->Register( "AchievementEvent", -1 );
 	usermessages->Register( "UpdateJalopyRadar", -1 );
+	usermessages->Register("SpeedrunTimer_TimeToBeat", -1);
+	usermessages->Register("SpeedrunTimer_Time", -1);
+	usermessages->Register("SpeedrunTimer_StateChange", -1);
 }

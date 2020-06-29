@@ -1725,6 +1725,13 @@
     <ClCompile Include="toolframework_server.cpp">
       <Filter>Tools Framework</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\shared.cpp" />
+    <ClCompile Include="hl2\npc_alyx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="srtimer_hud.cpp" />
+    <ClCompile Include="srtimer_handle_startandend.cpp" />
+    <ClCompile Include="srtimer_calc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shared\achievement_saverestore.h">
@@ -3428,6 +3435,12 @@
     <ClInclude Include="toolframework_server.h">
       <Filter>Tools Framework</Filter>
     </ClInclude>
+    <ClInclude Include="..\shared\shared.h" />
+    <ClInclude Include="hl2\npc_alyx.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="srtimer_calc.h" />
+    <ClInclude Include="srtimer_count.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\lib\public\choreoobjects.lib">
@@ -3465,5 +3478,6 @@
     <None Include="server_episodic.vpc">
       <Filter>Resources</Filter>
     </None>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

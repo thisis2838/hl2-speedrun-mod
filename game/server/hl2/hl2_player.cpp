@@ -46,6 +46,8 @@
 #include "GameStats.h"
 #include "filters.h"
 #include "tier0/icommandline.h"
+#define shared_api __declspec(dllexport)
+#include "shared.h"
 
 #ifdef HL2_EPISODIC
 #include "npc_alyx_episodic.h"
@@ -151,25 +153,12 @@ static impactdamagetable_t gCappedPlayerImpactDamageTable =
 
 };
 
+
 // Flashlight utility
 bool g_bCacheLegacyFlashlightStatus = true;
-bool g_bUseLegacyFlashlight;
 bool Flashlight_UseLegacyVersion( void )
 {
-	// If this is the first run through, cache off what the answer should be (cannot change during a session)
-	if ( g_bCacheLegacyFlashlightStatus )
-	{
-		char modDir[MAX_PATH];
-		if ( UTIL_GetModDir( modDir, sizeof(modDir) ) == false )
-			return false;
-
-		g_bUseLegacyFlashlight = ( !Q_strcmp( modDir, "hl2" ) || !Q_strcmp( modDir, "episodic" ) );
-
-		g_bCacheLegacyFlashlightStatus = false;
-	}
-
-	// Return the results
-	return g_bUseLegacyFlashlight;
+	return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -3238,34 +3227,6 @@ void CHL2_Player::UpdateClientData( void )
 		int iTimeBasedDamage = g_pGameRules->Damage_GetTimeBased();
 		m_bitsDamageType &= iTimeBasedDamage;
 	}
-
-	// Update Flashlight
-#ifdef HL2_EPISODIC
-	if ( Flashlight_UseLegacyVersion() == false )
-	{
-		if ( FlashlightIsOn() && sv_infinite_aux_power.GetBool() == false )
-		{
-			m_HL2Local.m_flFlashBattery -= FLASH_DRAIN_TIME * gpGlobals->frametime;
-			if ( m_HL2Local.m_flFlashBattery < 0.0f )
-			{
-				FlashlightTurnOff();
-				m_HL2Local.m_flFlashBattery = 0.0f;
-			}
-		}
-		else
-		{
-			m_HL2Local.m_flFlashBattery += FLASH_CHARGE_TIME * gpGlobals->frametime;
-			if ( m_HL2Local.m_flFlashBattery > 100.0f )
-			{
-				m_HL2Local.m_flFlashBattery = 100.0f;
-			}
-		}
-	}
-	else
-	{
-		m_HL2Local.m_flFlashBattery = -1.0f;
-	}
-#endif // HL2_EPISODIC
 
 	BaseClass::UpdateClientData();
 }

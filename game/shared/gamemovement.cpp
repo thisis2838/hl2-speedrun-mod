@@ -14,6 +14,11 @@
 #include "decals.h"
 #include "coordsize.h"
 #include "rumble_shared.h"
+#define shared_api __declspec(dllexport)
+#include "shared.h"
+
+bool shared_api crouched;
+
 
 #if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
 	#include "hl_movedata.h"
@@ -3950,7 +3955,7 @@ bool CGameMovement::CanUnduck()
 	}
 
 	bool saveducked = player->m_Local.m_bDucked;
-	player->m_Local.m_bDucked = false;
+	player->m_Local.m_bDucked = false; crouched = false;
 	TracePlayerBBox( mv->GetAbsOrigin(), newOrigin, PlayerSolidMask(), COLLISION_GROUP_PLAYER_MOVEMENT, trace );
 	player->m_Local.m_bDucked = saveducked;
 	if ( trace.startsolid || ( trace.fraction != 1.0f ) )
@@ -3988,7 +3993,7 @@ void CGameMovement::FinishUnDuck( void )
 		VectorAdd( newOrigin, viewDelta, newOrigin );
 	}
 
-	player->m_Local.m_bDucked = false;
+	player->m_Local.m_bDucked = false; crouched = false;
 	player->RemoveFlag( FL_DUCKING );
 	player->m_Local.m_bDucking  = false;
 	player->m_Local.m_bInDuckJump  = false;
@@ -4041,7 +4046,7 @@ void CGameMovement::FinishUnDuckJump( trace_t &trace )
 	flDeltaZ -= viewDelta.z;
 
 	player->RemoveFlag( FL_DUCKING );
-	player->m_Local.m_bDucked = false;
+	player->m_Local.m_bDucked = false; crouched = false;
 	player->m_Local.m_bDucking  = false;
 	player->m_Local.m_bInDuckJump = false;
 	player->m_Local.m_flDucktime = 0.0f;
@@ -4067,7 +4072,7 @@ void CGameMovement::FinishDuck( void )
 	int i;
 
 	player->AddFlag( FL_DUCKING );
-	player->m_Local.m_bDucked = true;
+	player->m_Local.m_bDucked = true; crouched = true;
 	player->m_Local.m_bDucking = false;
 
 	player->SetViewOffset( GetPlayerViewOffset( true ) );
@@ -4105,7 +4110,7 @@ void CGameMovement::FinishDuck( void )
 void CGameMovement::StartUnDuckJump( void )
 {
 	player->AddFlag( FL_DUCKING );
-	player->m_Local.m_bDucked = true;
+	player->m_Local.m_bDucked = true; crouched = true;
 	player->m_Local.m_bDucking = false;
 
 	player->SetViewOffset( GetPlayerViewOffset( true ) );
@@ -4179,7 +4184,7 @@ bool CGameMovement::CanUnDuckJump( trace_t &trace )
 		// Test a normal hull.
 		trace_t traceUp;
 		bool bWasDucked = player->m_Local.m_bDucked;
-		player->m_Local.m_bDucked = false;
+		player->m_Local.m_bDucked = false; crouched = false;
 		TracePlayerBBox( vecEnd, vecEnd, PlayerSolidMask(), COLLISION_GROUP_PLAYER_MOVEMENT, traceUp );
 		player->m_Local.m_bDucked = bWasDucked;
 		if ( !traceUp.startsolid  )
@@ -4371,7 +4376,7 @@ void CGameMovement::Duck( void )
 					{
 						SetDuckedEyeOffset(1.0f);
 						player->m_Local.m_flDucktime = GAMEMOVEMENT_DUCK_TIME;
-						player->m_Local.m_bDucked = true;
+						player->m_Local.m_bDucked = true; crouched = true;
 						player->m_Local.m_bDucking = false;
 						player->AddFlag( FL_DUCKING );
 					}

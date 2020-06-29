@@ -66,6 +66,13 @@
 #include "fogcontroller.h"
 #include "gameinterface.h"
 #include "hl2orange.spa.h"
+#define shared_api __declspec(dllexport)
+#include "shared.h"
+
+shared_api Vector havokpos;
+shared_api Vector havokspd;
+
+#include "srtimer_calc.h"
 
 #ifdef HL2_DLL
 #include "combine_mine.h"
@@ -5099,6 +5106,10 @@ int CBasePlayer::Restore( IRestore &restore )
 	// clear this - it will get reset by touching the trigger again
 	m_afPhysicsFlags &= ~PFLAG_VPHYSICS_MOTIONCONTROLLER;
 
+	// 2838: speedrun timer stuff
+	SpeedrunTimer::timer()->countpausedticks = false;
+	SpeedrunTimer::timer()->settimetoggle = true;
+
 	if ( GetFlags() & FL_DUCKING ) 
 	{
 		// Use the crouch HACK
@@ -7946,6 +7957,7 @@ void CBasePlayer::VPhysicsShadowUpdate( IPhysicsObject *pPhysics )
 	m_pPhysicsController->GetShadowVelocity( &newVelocity );
 	// assume vphysics gave us back a position without penetration
 	Vector lastValidPosition = newPosition;
+	havokpos = newPosition;
 
 	if ( physicsshadowupdate_render.GetBool() )
 	{
@@ -8078,6 +8090,8 @@ void CBasePlayer::VPhysicsShadowUpdate( IPhysicsObject *pPhysics )
 	}
 	m_oldOrigin = GetAbsOrigin();
 	m_bPhysicsWasFrozen = false;
+
+	havokspd = newVelocity;
 }
 
 // recreate physics on save/load, don't try to save the state!

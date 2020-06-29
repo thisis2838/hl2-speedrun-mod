@@ -404,6 +404,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "bin"
     <ClCompile Include="..\shared\sceneentity_shared.cpp" />
     <ClCompile Include="..\shared\script_intro_shared.cpp" />
     <ClCompile Include="..\shared\sequence_Transitioner.cpp" />
+    <ClCompile Include="..\shared\shared.cpp" />
     <ClCompile Include="..\shared\sheetsimulator.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
@@ -660,6 +661,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "bin"
     <ClCompile Include="hl2\item_suit.cpp" />
     <ClCompile Include="hl2\look_door.cpp" />
     <ClCompile Include="hl2\monster_dummy.cpp" />
+    <ClCompile Include="hl2\npc_alyx.cpp" />
     <ClCompile Include="hl2\npc_antlion.cpp" />
     <ClCompile Include="hl2\npc_antliongrub.cpp" />
     <ClCompile Include="hl2\npc_antlionguard.cpp" />
@@ -841,6 +843,9 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "bin"
     <ClCompile Include="soundent.cpp" />
     <ClCompile Include="soundscape.cpp" />
     <ClCompile Include="soundscape_system.cpp" />
+    <ClCompile Include="srtimer_calc.cpp" />
+    <ClCompile Include="srtimer_hud.cpp" />
+    <ClCompile Include="srtimer_handle_startandend.cpp" />
     <ClCompile Include="spotlightend.cpp" />
     <ClCompile Include="sprite_perfmonitor.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -1177,6 +1182,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "bin"
     <ClInclude Include="..\shared\saverestore_utlsymbol.h" />
     <ClInclude Include="..\shared\saverestore_utlvector.h" />
     <ClInclude Include="..\shared\scriptevent.h" />
+    <ClInclude Include="..\shared\shared.h" />
     <ClInclude Include="..\shared\shareddefs.h" />
     <ClInclude Include="..\shared\sharedInterface.h" />
     <ClInclude Include="..\shared\shared_classnames.h" />
@@ -1332,6 +1338,9 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "bin"
     <ClInclude Include="globalstate.h" />
     <ClInclude Include="globalstate_private.h" />
     <ClInclude Include="grenadethrown.h" />
+    <ClInclude Include="hl2\npc_alyx.h" />
+    <ClInclude Include="srtimer_count.h" />
+    <ClInclude Include="srtimer_calc.h" />
     <ClInclude Include="hierarchy.h" />
     <ClInclude Include="hl2\ai_behavior_actbusy.h" />
     <ClInclude Include="hl2\ai_behavior_functank.h" />
@@ -1501,6 +1510,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "bin"
     <Library Include="..\..\lib\public\vstdlib.lib" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
     <None Include="server_episodic.vpc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

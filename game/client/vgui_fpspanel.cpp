@@ -4,6 +4,7 @@
 //
 //=====================================================================================//
 
+
 #include "cbase.h"
 #include "ifpspanel.h"
 #include <vgui_controls/Panel.h>
@@ -17,6 +18,8 @@
 #include "materialsystem/imaterialsystemhardwareconfig.h"
 #include "filesystem.h"
 #include "../common/xbox/xboxstubs.h"
+#include "shared.h"
+#include "havokmirror.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -26,7 +29,6 @@ static ConVar cl_showpos( "cl_showpos", "0", 0, "Draw current position at top of
 
 extern bool g_bDisplayParticlePerformance;
 int GetParticlePerformance();
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Framerate indicator panel
@@ -121,7 +123,7 @@ void CFPSPanel::ComputeSize( void )
 		y += XBOX_MINBORDERSAFE * tall;
 	}
 	SetPos( x, y );
-	SetSize( FPS_PANEL_WIDTH, 4 * vgui::surface()->GetFontTall( m_hFont ) + 8 );
+	SetSize( FPS_PANEL_WIDTH, 40 * vgui::surface()->GetFontTall( m_hFont ) + 8 );
 }
 
 void CFPSPanel::ApplySchemeSettings(vgui::IScheme *pScheme)
@@ -304,6 +306,27 @@ void CFPSPanel::Paint()
 											  255, 255, 255, 255, 
 											  "vel:  %.2f", 
 											  vel.Length() );
+
+		if (CHavokMirror::shouldDrawHavokPos())
+		{
+			i += CHavokMirror::shouldDrawHavokMirror() ? 12 : 1;
+
+			g_pMatSystemSurface->DrawColoredText(m_hFont, x, 2 + i * (vgui::surface()->GetFontTall(m_hFont) + 2),
+				255, 255, 255, 255,
+				"havok pos:  %.02f %.02f %.02f",
+				havokpos.x, havokpos.y, havokpos.z);
+			i++;
+
+			static Vector havokvel(0, 0, 0);
+			havokvel = havokspd;
+
+			g_pMatSystemSurface->DrawColoredText(m_hFont, x, 2 + i * (vgui::surface()->GetFontTall(m_hFont) + 2),
+				255, 255, 255, 255,
+				"havok vel:  %.02f",
+				havokvel.Length());
+
+			i++;
+		}
 	}
 }
 

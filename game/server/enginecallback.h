@@ -19,7 +19,7 @@
 class IFileSystem;				// include FileSystem.h
 class IUniformRandomStream;		// include vstdlib/random.h
 class IEngineSound;				// include engine/IEngineSound.h
-class IVEngineServer;			
+class IVEngineServer;
 class IVoiceServer;
 class IStaticPropMgrServer;
 class ISpatialPartition;

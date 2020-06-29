@@ -15,6 +15,7 @@
 #include "eventqueue.h"
 #include "soundent.h"
 #include "logicrelay.h"
+#include "srtimer_handle_startandend.cpp"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -142,6 +143,9 @@ void CLogicRelay::InputTrigger( inputdata_t &inputdata )
 {
 	if ((!m_bDisabled) && (!m_bWaitForRefire))
 	{
+		const char* name = GetEntityName().ToCStr();
+		TimerOperate::OperateWithName(name, "start");
+
 		m_OnTrigger.FireOutput( inputdata.pActivator, this );
 		
 		if (m_spawnflags & SF_REMOVE_ON_FIRE)

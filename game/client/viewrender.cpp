@@ -1875,6 +1875,11 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		}
 	#endif
 
+		if (g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 70)
+		{
+			DrawMirror(view);
+		}
+
 		g_bRenderingView = true;
 
 		// Must be first 
