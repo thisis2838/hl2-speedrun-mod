@@ -1490,6 +1490,7 @@
     </ClCompile>
     <ClCompile Include="havokmirror.cpp" />
     <ClCompile Include="srtimer_visuals.cpp" />
+    <ClCompile Include="srspeedmeter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="achievement_notification_panel.h">

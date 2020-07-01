@@ -1,25 +1,126 @@
 #include "cbase.h"
 #include "srtimer_calc.h"
+#include <xlocale>
+#include <fstream>
+#include <algorithm>
+#include <chrono>
+#include <ctime>
 
-static ConVar sr_timer_end_map("sr_timer_end_map", "");
-
-// quirky dev note: why didnt valve just do this for us?!?!?!
-
-void SpeedrunTimer::SetFormattedCurrentTime()
+const char *lowercase(const char* input)
 {
-	int hours = (int)(runtime / 3600.0f);
-	int minutes = (int)(((runtime / 3600.0f) - hours) * 60.0f);
-	int seconds = (int)(((((runtime / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f);
-	int millis = (int)(((((((runtime / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f) - seconds) * 10000.0f);
+	int i;
+	char* loweredchar;
+	for (i = 0; i < strlen(input); i++)
+	{
+		loweredchar[i] = tolower(input[i]);
+	}
+	return loweredchar;
+}
 
-	Q_snprintf(runtimeprint, sizeof(runtimeprint), "%02d:%02d:%02d.%04d",
+static ConVar sr_timer_end_map("sr_timer_end_map", "", 0, "Defines a custom end map for your run, leave blank to disable");
+static ConVar sr_timer_output_filepath("sr_timer_output_filepath", "", FCVAR_ARCHIVE, "Defines the filepath of the file to put run information in.");
+static ConVar sr_timer_timing_method("sr_timer_timing_method", "0", 0, "Which method of timing to use, 0 is with pauses, 1 is without pauses");
+static ConVar sr_timer_run_count("sr_timer_run_count", "0", FCVAR_ARCHIVE | FCVAR_HIDDEN, "Total run count so far");
+static ConVar sr_timer_run_count_in_session("sr_timer_run_count_in_session", "0", FCVAR_HIDDEN, "Total run count in this session");
+
+auto start = std::chrono::system_clock::now();
+auto end = std::chrono::system_clock::now();
+
+char startmethod[100] = "";
+char endmethod[100] = "";
+char cheatsmsg[100] = "";
+
+bool checkforcheats;
+bool ischeater;
+float timeoffirstcheat;
+
+bool IsEndMapSet()
+{
+	return !(Q_strcmp("", sr_timer_end_map.GetString()) == 0);
+}
+
+void WriteToFile(const char* input)
+{
+	if (sr_timer_output_filepath.GetString() == "")
+		return;
+
+	// replace \ with \\ to comply with c++ weird requirements
+	std::string str = sr_timer_output_filepath.GetString();
+	for (std::string::size_type offs = str.find("\\"); offs != std::string::npos; offs = str.find("\\", offs + 2))
+	{
+		str.replace(offs, 1, "\\\\");
+	}
+
+	std::fstream fs;
+	fs.open(str.c_str());
+	
+	if (fs.fail())
+	{
+		Msg("The file %s does not exist! Creating one... \n", sr_timer_output_filepath.GetString());
+		std::ofstream outfile(str.c_str());
+		outfile.close();
+	}
+
+	std::ofstream outfile;
+	outfile.open(str.c_str(), std::ios_base::app);
+	outfile << input;
+	Msg("Finished writing run information to %s! \n", sr_timer_output_filepath.GetString());
+}
+
+void ConstructRunInformation(const char* input)
+{
+	std::time_t start_c = std::chrono::system_clock::to_time_t(start);
+	const std::tm start_tm = *std::localtime(&start_c);
+	char runstart[50];
+	strftime(runstart, sizeof(runstart), "%A %c", &start_tm);
+
+	std::time_t end_c = std::chrono::system_clock::to_time_t(end);
+	const std::tm end_tm = *std::localtime(&end_c);
+	char runend[50];
+	strftime(runend, sizeof(runstart), "%A %c", &end_tm);
+
+	const char* runtime = input;
+	float pausetime = SpeedrunTimer::timer()->grandtotalpausedticks * 0.015;
+
+
+	char print[500];
+	int totalruncount = sr_timer_run_count.GetInt();
+	int sessionruncount = sr_timer_run_count_in_session.GetInt();
+
+	Q_snprintf(print, sizeof(print),
+		"\n\n#%i\n-----RUN INFORMATION BEGIN-----\nRun #%i of total count, run #%i of session\nFinal time was %s\nTotal amount of time spent pausing was %f seconds\n\n%s%s%s\nRun started on %s\nand ended on %s\n-----RUN INFORMATION END-----\n\n",
+		totalruncount,
+		totalruncount,
+		sessionruncount,
+		input,
+		pausetime,
+		cheatsmsg,
+		startmethod,
+		endmethod,
+		runstart, 
+		runend
+	);
+
+	WriteToFile(print);
+}
+
+const char* SpeedrunTimer::SetFormattedCurrentTime(float input)
+{
+	int hours = (int)(input / 3600.0f);
+	int minutes = (int)(((input / 3600.0f) - hours) * 60.0f);
+	int seconds = (int)(((((input / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f);
+	int millis = (int)(((((((input / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f) - seconds) * 10000.0f);
+
+	char printout[15];
+
+	Q_snprintf(printout, sizeof(printout), "%02d:%02d:%02d.%04d",
 		hours,//hours
 		minutes, //minutes
 		seconds,//seconds
 		millis);
 
-	Msg("Run End! Time was %s \n", runtimeprint);
-	pausedticks = 0;
+	return printout;
+
 }
 
 void SpeedrunTimer::Init(float offsetAfterLoad)
@@ -32,13 +133,35 @@ void SpeedrunTimer::SetOffsetBefore(float newOff) {
 	offsetBefore = newOff;
 }
 
-void SpeedrunTimer::Start()
+void SpeedrunTimer::Start(int method)
 {
 	forcestoppausecalc = false;
 	totalTicks = 0;
+	pausedticks = 0;
 	startTick = gpGlobals->tickcount;
+	settimetoggle = true;
+
+	ischeater = false;
+	checkforcheats = true;
+
+	Msg("------------------------- \n");
 	Msg("Run Start! \n");
+	Msg("------------------------- \n");
+
+	if (method == 0)
+	{
+		Q_snprintf(startmethod, sizeof(startmethod), "The timer was manually started on %s\n", gpGlobals->mapname.ToCStr());
+	}
+	else if (method == 1)
+	{
+		Q_snprintf(startmethod, sizeof(startmethod), "The timer was automatically started by default full-game run start trigger\n");
+	}
+
+	start = std::chrono::system_clock::now();
+
 	SetRunning(true);
+	custmapendtrig = false;
+	grandtotalpausedticks = 0;
 }
 
 void SpeedrunTimer::SetLevelLoad(bool newVal) {
@@ -49,18 +172,61 @@ bool SpeedrunTimer::InLevelLoad() {
 	return inLevelLoad;
 }
 
-void SpeedrunTimer::Stop()
+void SpeedrunTimer::Stop(int method)
 {
 	if (engine->IsPaused())
 	{
 		totalTicks += pausedtickstemp / 0.015;
-		DevMsg("%f %f \n", pausedtickstemp, totalTicks);
+		runtime = totalTicks * 0.015;
+		grandtotalpausedticks += pausedtickstemp / 0.015;
 	}
+
+	if (totalTicks != 0)
+	{
+		sr_timer_run_count.SetValue(sr_timer_run_count.GetInt() + 1);
+		sr_timer_run_count_in_session.SetValue(sr_timer_run_count_in_session.GetInt() + 1);
+	}
+
+	if (ischeater)
+	{
+		char cheaterprinttime[15];
+		Q_strcpy(cheaterprinttime, SetFormattedCurrentTime(timeoffirstcheat));
+		
+		Q_snprintf(cheatsmsg, sizeof(cheatsmsg), "!!! sv_cheats was enabled at %s !!!\n", cheaterprinttime);
+	}
+
+	if (method == 0)
+	{
+		Q_snprintf(endmethod, sizeof(endmethod), "The timer was manually stopped on %s\n", gpGlobals->mapname.ToCStr());
+	}
+	if (method == 1)
+	{
+		Q_snprintf(endmethod, sizeof(endmethod), "The timer was manually set to automatically stop on %s \n", sr_timer_end_map.GetString());
+	}
+	else if (method == 2)
+	{
+		Q_snprintf(endmethod, sizeof(endmethod), "The run was automatically stopped by default full-game run end trigger\n");
+	}
+
+
+	end = std::chrono::system_clock::now();
+
 	m_bIsRunning = false;
 	forcestoppausecalc = true;
 	SetOffsetBefore(0.0f);
-	SetFormattedCurrentTime();
-	countpausedticks = false;
+
+	Q_strcpy(runtimeprint, SetFormattedCurrentTime(runtime));
+
+	Msg("------------------------- \n");
+	Msg("Run End! Time was %s \n", runtimeprint);
+	Msg("Total amount of pause time was %f seconds \n", grandtotalpausedticks * 0.015);
+	Msg("------------------------- \n");
+
+	ConstructRunInformation(runtimeprint);
+
+	pausedticks = 0;
+	DispatchTimeMessage(); //refresh hud timer so that both are synced
+
 	settimetoggle = true;
 	pausedtickstemp = 0;
 }
@@ -78,21 +244,9 @@ void SpeedrunTimer::SetRunning(bool newb)
 void SpeedrunTimer::CalcTime()
 {
 	// checks for if the game is paused to comply with "new" timing method.
-	// first check if the game is paused
 	gamepaused = engine->IsPaused();
 
-	// monitor if the game was paused or unpaused by getting its previous state
-	if (gamepausedtoggle) { prevgamepaused = gamepaused; gamepausedtoggle = false; }
-	else { gamepausedtoggle = true; }
-
-	// if we paused, start counting; if not reset the previous pause calculations
-	//if (gamepaused == true && prevgamepaused == false) { countpausedticks = true; settimetoggle = true; }
-	//else if (gamepaused == false && prevgamepaused == true) { countpausedticks = false; }
-
-	// the way this works is it will mark the time on which the game is paused using Plat_FloatTime()
-	// then when the game is unpaused OR loads, stop and compare the time right now to the original time value to get the delta
-	// which is then added onto the timer; very HACKHACK apporach but this is the only way with the given toolset.
-	if (!forcestoppausecalc)
+	if (!forcestoppausecalc && sr_timer_timing_method.GetInt() == 0)
 	{
 		if (gamepaused)
 		{
@@ -105,6 +259,7 @@ void SpeedrunTimer::CalcTime()
 		else if (pausedtickstemp != 0)
 		{
 			pausedticks += pausedtickstemp / 0.015;
+			grandtotalpausedticks += pausedticks;
 			DevMsg("Paused measured, added %f seconds to time. \n", pausedtickstemp);
 			pausedtickstemp = 0;
 			settimetoggle = true;
@@ -115,21 +270,29 @@ void SpeedrunTimer::CalcTime()
 		}
 	}
 
-	if (Q_strcmp(gpGlobals->mapname.ToCStr(), sr_timer_end_map.GetString()) == 0)
+	if (Q_strcmp(gpGlobals->mapname.ToCStr(), lowercase(sr_timer_end_map.GetString())) == 0 && IsEndMapSet())
 	{
-		sr_timer_end_map.SetValue("");
-		Stop();
+		//whats this?
+		//if we call stop() here then it will call dispatchtimemessage() in the middle of its previous call
+		//resulting in a exit to desktop. better to tell the next dispatchtimemessage() call to end the run
+		custmapendtrig = true;
 	}
 	else
 	{
-		curTime = (float)gpGlobals->tickcount;
+		curTime = (float)gpGlobals->tickcount + pausedticks;
 		totalTicks += curTime - startTick;
 		startTick = curTime;
 		runtime = totalTicks * 0.015;
 	}
-	//DevMsg("%f %f %f %f %f\n", pausedticks, curTime, startTick, totalTicks, pausedtickstemp);
-	DevMsg("%i %f\n", gamepaused, pausedtickstemp);
 
+	if (sv_cheats->GetBool() && checkforcheats)
+	{
+		ischeater = true;
+		timeoffirstcheat = (gamepaused) ? totalTicks + pausedtickstemp / 0.015 : totalTicks;
+		checkforcheats = false;
+	}
+
+	//DevMsg("%f %f %f %f %f\n", pausedticks, curTime, startTick, totalTicks, pausedtickstemp);
 }
 
 float SpeedrunTimer::GetCurrentTime()
@@ -140,11 +303,20 @@ float SpeedrunTimer::GetCurrentTime()
 
 void SpeedrunTimer::DispatchTimeMessage()
 {
-	CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
-	user.MakeReliable();
-	UserMessageBegin(user, "SpeedrunTimer_Time");
-	WRITE_FLOAT(GetCurrentTime());
-	MessageEnd();
+	if (!custmapendtrig)
+	{
+		CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
+		user.MakeReliable();
+		UserMessageBegin(user, "SpeedrunTimer_Time");
+		WRITE_FLOAT(GetCurrentTime());
+		MessageEnd();
+	}
+	else
+	{
+		custmapendtrig = false;
+		Stop(1);
+		sr_timer_end_map.SetValue("");
+	}
 }
 
 float SpeedrunTimer::GetOffsetBefore()

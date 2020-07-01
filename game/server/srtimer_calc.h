@@ -51,9 +51,11 @@ private:
 	float curTime;
 	float startTime;
 	float a;
+	bool custmapendtrig;
 
 public:
 	float totalTicks;//to be sent to the hud and converted into HH:MM:SS
+	float grandtotalpausedticks;
 
 private:
 	float startTick;//the tick in which the level/reload started
@@ -61,9 +63,6 @@ private:
 public:
 	bool forcestoppausecalc; // just to make sure...
 	bool gamepaused;
-	bool prevgamepaused;
-	bool gamepausedtoggle;
-	bool countpausedticks;
 	bool settimetoggle;
 	float pausedticks;
 	float pausedtickstemp;
@@ -77,13 +76,13 @@ public:
 	float runtime;
 	char runtimeprint[15];
 
-	void SetFormattedCurrentTime();
+	const char* SetFormattedCurrentTime(float input);
 	void Init(float offsetAfterLoad);
 	void SetOffsetBefore(float newOff);
-	void Start();
+	void Start(int method);
 	void SetLevelLoad(bool newVal);
 	bool InLevelLoad();
-	void Stop();
+	void Stop(int method);
 	bool IsRunning();
 	void SetRunning(bool newb);
 	void CalcTime();

@@ -5107,8 +5107,8 @@ int CBasePlayer::Restore( IRestore &restore )
 	m_afPhysicsFlags &= ~PFLAG_VPHYSICS_MOTIONCONTROLLER;
 
 	// 2838: speedrun timer stuff
-	SpeedrunTimer::timer()->countpausedticks = false;
 	SpeedrunTimer::timer()->settimetoggle = true;
+	SpeedrunTimer::timer()->pausedticks = 0;
 
 	if ( GetFlags() & FL_DUCKING ) 
 	{

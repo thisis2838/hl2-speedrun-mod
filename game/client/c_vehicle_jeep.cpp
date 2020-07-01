@@ -12,6 +12,9 @@
 #include "c_baseplayer.h"
 #include "c_te_effect_dispatch.h"
 #include "fx.h"
+#include "shared.h"
+
+Vector realvehiclespd;
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -190,6 +193,7 @@ void C_PropJeep::DampenForwardMotion( Vector &vecVehicleEyePos, QAngle &vecVehic
 	if (vecVehicleEyeSpeed.Length() == 0.0)
 		return;
 
+	realvehiclespd = vecVehicleEyeSpeed;
 	// Calculate the delta between the predicted eye position and speed and the current eye position and speed.
 	Vector vecDeltaSpeed = vecVehicleEyeSpeed - vecPredEyeSpeed;
 	Vector vecDeltaPos = vecVehicleEyePos - vecPredEyePos;

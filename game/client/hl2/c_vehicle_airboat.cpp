@@ -26,6 +26,10 @@
 #include "ClientEffectPrecacheSystem.h"
 #include "c_basehlplayer.h"
 
+#include "shared.h"
+
+Vector realvehiclespd;
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -399,6 +403,7 @@ void C_PropAirboat::DampenForwardMotion( Vector &vecVehicleEyePos, QAngle &vecVe
 		return;
 	}
 
+	realvehiclespd = vecVehicleEyeSpeed;
 	// Calculate the delta between the predicted eye position and speed and the current eye position and speed.
 	Vector vecDeltaSpeed = vecVehicleEyeSpeed - vecPredEyeSpeed;
 	Vector vecDeltaPos = vecVehicleEyePos - vecPredEyePos;

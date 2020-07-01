@@ -28,6 +28,7 @@ extern ConVar joy_response_move_vehicle;
 IMPLEMENT_CLIENTCLASS_DT(C_PropVehicleDriveable, DT_PropVehicleDriveable, CPropVehicleDriveable)
 	RecvPropEHandle( RECVINFO(m_hPlayer) ),
 	RecvPropInt( RECVINFO( m_nSpeed ) ),
+	RecvPropFloat( RECVINFO( m_AirBoatSpeed ) ),
 	RecvPropInt( RECVINFO( m_nRPM ) ),
 	RecvPropFloat( RECVINFO( m_flThrottle ) ),
 	RecvPropInt( RECVINFO( m_nBoostTimeLeft ) ),

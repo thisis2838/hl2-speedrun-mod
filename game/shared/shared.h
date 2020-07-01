@@ -9,6 +9,10 @@
 #define shared_api __declspec(dllimport)
 #endif
 
+#ifndef shared_api2
+#define shared_api2 __declspec(dllimport)
+#endif
+
 
 #include "util_shared.h"
 
@@ -20,5 +24,7 @@ extern bool shared_api crouched;
 // hud timer code
 extern float shared_api totalTicks;
 
+// hud speedometer code
+extern Vector realvehiclespd;
 
 #endif

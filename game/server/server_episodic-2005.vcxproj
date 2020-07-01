@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>Server Episodic</ProjectName>
+    <ProjectName>Server</ProjectName>
     <ProjectGuid>{31C796EE-3EE9-54FC-9EF2-AC09ED9C18F5}</ProjectGuid>
     <RootNamespace>Server Episodic)</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -50,13 +50,14 @@
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>.\Release_episodic\</OutDir>
-    <IntDir>.\Release_episodic\</IntDir>
+    <OutDir>Release_episodic\</OutDir>
+    <IntDir>Release_episodic\</IntDir>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <PreLinkEventUseInBuild>true</PreLinkEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <TargetName>server</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
@@ -201,7 +202,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "bin"
       <OutputFile>$(OutDir)Server.bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Command>xcopy "D:\Speedrun\half-life 2\source-code\hl2-speedrun-mod\game\server\Release_episodic\server.dll" "D:\Steam\steamapps\sourcemods\hl2test\bin\server.dll" /y</Command>
+      <Command>xcopy "D:\Speedrun\half-life 2\source-code\hl2-speedrun-mod\game\server\Release_episodic\server.dll" "T:\Steam\steamapps\sourcemods\hl2test\bin\server.dll" /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

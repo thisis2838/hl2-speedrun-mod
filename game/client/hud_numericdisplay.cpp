@@ -49,7 +49,7 @@ void CHudNumericDisplay::Reset()
 //-----------------------------------------------------------------------------
 void CHudNumericDisplay::SetDisplayValue(int value)
 {
-	m_iValue = value;
+	m_iValue = (value < 100000) ? value : 0;
 }
 
 //-----------------------------------------------------------------------------

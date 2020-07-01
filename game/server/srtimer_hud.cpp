@@ -6,11 +6,11 @@
 
 
 void startTimer() {
-	SpeedrunTimer::timer()->Start();
+	SpeedrunTimer::timer()->Start(0);
 }
 
 void stopTimer() {
-	SpeedrunTimer::timer()->Stop();
+	SpeedrunTimer::timer()->Stop(0);
 }
 
 ConCommand startTimer_c("sr_timer_start", startTimer, "Starts the timer.", 0);

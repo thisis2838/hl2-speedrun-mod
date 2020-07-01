@@ -22,14 +22,14 @@ void TimerOperate::OperateWithName(const char* name, const char* op)
 
 	if (Q_strcmp(name, "logic_start_train") == 0 && Q_strcmp(op, "start") == 0)
 	{
-		SpeedrunTimer::timer()->Start();
+		SpeedrunTimer::timer()->Start(1);
 		return;
 	}
 
 	else if (Q_strcmp(name, "Mic_breen_teleport_final") == 0 && Q_strcmp(op, "end") == 0)
 	{
 		char runtimeprint[15];
-		SpeedrunTimer::timer()->Stop();
+		SpeedrunTimer::timer()->Stop(2);
 		if (SpeedrunTimer::timer()->runtimeprint)
 		{
 			Q_strcpy(runtimeprint, SpeedrunTimer::timer()->runtimeprint);
