@@ -44,5 +44,6 @@ void RegisterUserMessages( void )
 	usermessages->Register( "UpdateJalopyRadar", -1 );
 	usermessages->Register("SpeedrunTimer_TimeToBeat", -1);
 	usermessages->Register("SpeedrunTimer_Time", -1);
+	usermessages->Register("SpeedrunTimer_TimeDelta", -1);
 	usermessages->Register("SpeedrunTimer_StateChange", -1);
 }

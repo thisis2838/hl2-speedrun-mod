@@ -1116,7 +1116,7 @@ void CServerGameDLL::GameFrame(bool simulating)
 			}
 		}
 		else {
-			SpeedrunTimer::timer()->DispatchTimeMessage();
+			SpeedrunTimer::timer()->DispatchTimeMessage(false);
 		}
 	}
 	float oldframetime = gpGlobals->frametime;

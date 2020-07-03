@@ -12,6 +12,7 @@
 #include "eventqueue.h"
 #include "mathlib/mathlib.h"
 #include "globalstate.h"
+#include "srtimer_calc.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -104,6 +105,7 @@ void CLogicAuto::Think(void)
 		}
 
 		m_OnMapSpawn.FireOutput(NULL, this);
+		SpeedrunTimer::timer()->pausedticks = 0;
 
 		if ( g_pGameRules->IsMultiplayer() )
 		{

@@ -15,13 +15,55 @@ const char *lowercase(const char* input)
 		loweredchar[i] = tolower(input[i]);
 	}
 	return loweredchar;
+
 }
 
-static ConVar sr_timer_end_map("sr_timer_end_map", "", 0, "Defines a custom end map for your run, leave blank to disable");
-static ConVar sr_timer_output_filepath("sr_timer_output_filepath", "", FCVAR_ARCHIVE, "Defines the filepath of the file to put run information in.");
-static ConVar sr_timer_timing_method("sr_timer_timing_method", "0", 0, "Which method of timing to use, 0 is with pauses, 1 is without pauses");
-static ConVar sr_timer_run_count("sr_timer_run_count", "0", FCVAR_ARCHIVE | FCVAR_HIDDEN, "Total run count so far");
-static ConVar sr_timer_run_count_in_session("sr_timer_run_count_in_session", "0", FCVAR_HIDDEN, "Total run count in this session");
+const char* SpeedrunTimer::SetFormattedCurrentTime(float input)
+{
+	int hours = (int)(input / 3600.0f);
+	int minutes = (int)(((input / 3600.0f) - hours) * 60.0f);
+	int seconds = (int)(((((input / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f);
+	int millis = (int)(((((((input / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f) - seconds) * 10000.0f);
+
+	char printout[15];
+
+	Q_snprintf(printout, sizeof(printout), "%02d:%02d:%02d.%04d",
+		hours,//hours
+		minutes, //minutes
+		seconds,//seconds
+		millis);
+
+	return printout;
+}
+
+
+
+static void SetTimeToBeat(const CCommand& args)
+{
+	if (args.ArgC() < 5)
+	{
+		Msg("Format: sr_timer_pb <hour> <mins> <secs> <milisecs>\n");
+		return;
+	}
+	else
+	{
+		SpeedrunTimer::timer()->personalbest = atoi(args[1]) * 3600 + atoi(args[2]) * 60 + atoi(args[3]) + atof(args[4]) * 0.001;
+		Msg("Personal best time set to %s! \n", SpeedrunTimer::timer()->SetFormattedCurrentTime(SpeedrunTimer::timer()->personalbest));
+	}
+
+	if (gpGlobals->tickcount != 0) //2838: ONLY fire when the game is active, else we run into read access violations
+	{
+		SpeedrunTimer::timer()->DispatchTimeMessage(true);
+	}
+}
+
+
+static ConVar sr_timer_end_map("sr_timer_end_map", "", 0, "Defines a custom end map for your run, leave blank to disable\n");
+static ConVar sr_timer_output_filepath("sr_timer_output_filepath", "", FCVAR_ARCHIVE, "Defines the filepath of the file to put run information in.\n");
+static ConCommand sr_timer_pb("sr_timer_pb", SetTimeToBeat, "Sets the PB for your run\n", FCVAR_ARCHIVE);
+static ConVar sr_timer_timing_method("sr_timer_timing_method", "0", 0, "Which method of timing to use, 0 is with pauses, 1 is without pauses\n");
+static ConVar sr_timer_run_count("sr_timer_run_count", "0", FCVAR_ARCHIVE | FCVAR_HIDDEN, "Total run count so far \n");
+static ConVar sr_timer_run_count_in_session("sr_timer_run_count_in_session", "0", FCVAR_HIDDEN, "Total run count in this session \n");
 
 auto start = std::chrono::system_clock::now();
 auto end = std::chrono::system_clock::now();
@@ -33,6 +75,11 @@ char cheatsmsg[100] = "";
 bool checkforcheats;
 bool ischeater;
 float timeoffirstcheat;
+
+float pbdelta;
+char pbmsg[100] = "";
+
+bool writedelta = false;
 
 bool IsEndMapSet()
 {
@@ -88,11 +135,12 @@ void ConstructRunInformation(const char* input)
 	int sessionruncount = sr_timer_run_count_in_session.GetInt();
 
 	Q_snprintf(print, sizeof(print),
-		"\n\n#%i\n-----RUN INFORMATION BEGIN-----\nRun #%i of total count, run #%i of session\nFinal time was %s\nTotal amount of time spent pausing was %f seconds\n\n%s%s%s\nRun started on %s\nand ended on %s\n-----RUN INFORMATION END-----\n\n",
+		"\n\n#%i\n-----RUN INFORMATION BEGIN-----\nRun #%i of total count, run #%i of session\nFinal time was %s\n%s\nTotal amount of time spent pausing was %f seconds\n\n%s%s%s\nRun started on %s\nand ended on %s\n-----RUN INFORMATION END-----\n\n",
 		totalruncount,
 		totalruncount,
 		sessionruncount,
 		input,
+		pbmsg,
 		pausetime,
 		cheatsmsg,
 		startmethod,
@@ -104,29 +152,11 @@ void ConstructRunInformation(const char* input)
 	WriteToFile(print);
 }
 
-const char* SpeedrunTimer::SetFormattedCurrentTime(float input)
-{
-	int hours = (int)(input / 3600.0f);
-	int minutes = (int)(((input / 3600.0f) - hours) * 60.0f);
-	int seconds = (int)(((((input / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f);
-	int millis = (int)(((((((input / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f) - seconds) * 10000.0f);
-
-	char printout[15];
-
-	Q_snprintf(printout, sizeof(printout), "%02d:%02d:%02d.%04d",
-		hours,//hours
-		minutes, //minutes
-		seconds,//seconds
-		millis);
-
-	return printout;
-
-}
-
 void SpeedrunTimer::Init(float offsetAfterLoad)
 {
 	startTick = offsetAfterLoad;
 	SetLevelLoad(false);
+	DispatchTimeMessage(true);
 }
 
 void SpeedrunTimer::SetOffsetBefore(float newOff) {
@@ -192,8 +222,16 @@ void SpeedrunTimer::Stop(int method)
 		char cheaterprinttime[15];
 		Q_strcpy(cheaterprinttime, SetFormattedCurrentTime(timeoffirstcheat));
 		
-		Q_snprintf(cheatsmsg, sizeof(cheatsmsg), "!!! sv_cheats was enabled at %s !!!\n", cheaterprinttime);
+		if (timeoffirstcheat == 0)
+		{
+			Q_snprintf(cheatsmsg, sizeof(cheatsmsg), "!!! sv_cheats was enabled before or at run start !!!\n");
+		}
+		else
+		{
+			Q_snprintf(cheatsmsg, sizeof(cheatsmsg), "!!! sv_cheats was enabled at %s !!!\n", cheaterprinttime);
+		}
 	}
+
 
 	if (method == 0)
 	{
@@ -208,6 +246,20 @@ void SpeedrunTimer::Stop(int method)
 		Q_snprintf(endmethod, sizeof(endmethod), "The run was automatically stopped by default full-game run end trigger\n");
 	}
 
+	if (pbdelta != 0)
+	{
+		char printtime[15];
+		Q_strcpy(printtime, SetFormattedCurrentTime(abs(pbdelta)));
+
+		if (pbdelta < 0)
+		{
+			Q_snprintf(pbmsg, sizeof(pbmsg), "The run was %s ahead of PB", printtime);
+		}
+		else
+		{
+			Q_snprintf(pbmsg, sizeof(pbmsg), "The run was %s behind of PB", printtime);
+		}
+	}
 
 	end = std::chrono::system_clock::now();
 
@@ -225,7 +277,18 @@ void SpeedrunTimer::Stop(int method)
 	ConstructRunInformation(runtimeprint);
 
 	pausedticks = 0;
-	DispatchTimeMessage(); //refresh hud timer so that both are synced
+
+	//refresh hud timer so that both are synced
+	if (personalbest != 0)
+	{
+		writedelta = true;
+		DispatchTimeMessage(true);
+	}
+	else
+	{
+		DispatchTimeMessage(false);
+	}
+
 
 	settimetoggle = true;
 	pausedtickstemp = 0;
@@ -274,7 +337,7 @@ void SpeedrunTimer::CalcTime()
 	{
 		//whats this?
 		//if we call stop() here then it will call dispatchtimemessage() in the middle of its previous call
-		//resulting in a exit to desktop. better to tell the next dispatchtimemessage() call to end the run
+		//resulting in a exit to desktop. better to queue up the next dispatchtimemessage() call to end the run
 		custmapendtrig = true;
 	}
 	else
@@ -285,10 +348,12 @@ void SpeedrunTimer::CalcTime()
 		runtime = totalTicks * 0.015;
 	}
 
+	pbdelta = runtime - personalbest;
+
 	if (sv_cheats->GetBool() && checkforcheats)
 	{
 		ischeater = true;
-		timeoffirstcheat = (gamepaused) ? totalTicks + pausedtickstemp / 0.015 : totalTicks;
+		timeoffirstcheat = (gamepaused) ? runtime + pausedtickstemp : runtime;
 		checkforcheats = false;
 	}
 
@@ -301,23 +366,45 @@ float SpeedrunTimer::GetCurrentTime()
 	return totalTicks;
 }
 
-void SpeedrunTimer::DispatchTimeMessage()
+void SpeedrunTimer::DispatchTimeMessage(bool pb)
 {
-	if (!custmapendtrig)
+	if (!pb)
 	{
-		CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
-		user.MakeReliable();
-		UserMessageBegin(user, "SpeedrunTimer_Time");
-		WRITE_FLOAT(GetCurrentTime());
-		MessageEnd();
+		if (!custmapendtrig)
+		{
+			CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
+			user.MakeReliable();
+			UserMessageBegin(user, "SpeedrunTimer_Time");
+			WRITE_FLOAT(GetCurrentTime());
+			MessageEnd();
+		}
+		else
+		{
+			custmapendtrig = false;
+			Stop(1);
+			sr_timer_end_map.SetValue("");
+		}
 	}
 	else
 	{
-		custmapendtrig = false;
-		Stop(1);
-		sr_timer_end_map.SetValue("");
+		CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
+		user.MakeReliable();
+		if (!writedelta)
+		{
+			UserMessageBegin(user, "SpeedrunTimer_TimeToBeat");
+			WRITE_FLOAT(personalbest);
+			MessageEnd();
+		}
+		else
+		{
+			UserMessageBegin(user, "SpeedrunTimer_TimeDelta");
+			WRITE_FLOAT(pbdelta);
+			MessageEnd();
+			writedelta = false;
+		}
 	}
 }
+
 
 float SpeedrunTimer::GetOffsetBefore()
 {

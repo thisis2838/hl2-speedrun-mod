@@ -55,6 +55,7 @@ private:
 
 public:
 	float totalTicks;//to be sent to the hud and converted into HH:MM:SS
+	float personalbest;
 	float grandtotalpausedticks;
 
 private:
@@ -87,7 +88,7 @@ public:
 	void SetRunning(bool newb);
 	void CalcTime();
 	float GetCurrentTime();
-	void DispatchTimeMessage();
+	void DispatchTimeMessage(bool pb);
 	float GetOffsetBefore();
 
 };
