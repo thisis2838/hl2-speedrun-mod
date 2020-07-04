@@ -28,6 +28,7 @@
 #include "GameStats.h"
 
 #endif
+bool ishl1movement = CommandLine()->CheckParm("-hl1movement");
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -44,12 +45,12 @@ static CViewVectors g_DefaultViewVectors(
 													
 	Vector(-16, -16, 0 ),		//VEC_DUCK_HULL_MIN (m_vDuckHullMin)
 	Vector( 16,  16,  36 ),		//VEC_DUCK_HULL_MAX	(m_vDuckHullMax)
-	Vector( 0, 0, 28 ),			//VEC_DUCK_VIEW		(m_vDuckView)
+	Vector( 0, 0, (ishl1movement) ? 30 : 28 ),			//VEC_DUCK_VIEW		(m_vDuckView)
 													
 	Vector(-10, -10, -10 ),		//VEC_OBS_HULL_MIN	(m_vObsHullMin)
 	Vector( 10,  10,  10 ),		//VEC_OBS_HULL_MAX	(m_vObsHullMax)
 													
-	Vector( 0, 0, 14 )			//VEC_DEAD_VIEWHEIGHT (m_vDeadViewHeight)
+	Vector( 0, 0, (ishl1movement) ? 12 : 14 )			//VEC_DEAD_VIEWHEIGHT (m_vDeadViewHeight)
 );													
 													
 

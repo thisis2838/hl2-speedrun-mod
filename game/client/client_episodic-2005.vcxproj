@@ -845,6 +845,8 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "bin\client.pdb"
     <ClCompile Include="WorldDimsProxy.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\lib\public\discord_register.h" />
+    <ClInclude Include="..\..\lib\public\discord_rpc.h" />
     <ClInclude Include="..\..\public\appframework\IAppSystem.h" />
     <ClInclude Include="..\..\public\basehandle.h" />
     <ClInclude Include="..\..\public\basetypes.h" />
@@ -1436,6 +1438,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "bin\client.pdb"
   <ItemGroup>
     <Library Include="..\..\lib\public\bitmap.lib" />
     <Library Include="..\..\lib\public\choreoobjects.lib" />
+    <Library Include="..\..\lib\public\discord-rpc.lib" />
     <Library Include="..\..\lib\public\dmxloader.lib" />
     <Library Include="..\..\lib\public\mathlib.lib" />
     <Library Include="..\..\lib\public\matsys_controls.lib" />

@@ -1,4 +1,4 @@
-//========= Copyright � 1996-2005, Valve Corporation, All rights reserved. ============//
+﻿//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -16,9 +16,10 @@
 #include "rumble_shared.h"
 #define shared_api __declspec(dllexport)
 #include "shared.h"
-
 bool shared_api crouched;
+bool ishl1movement = CommandLine()->CheckParm("-hl1movement");
 
+static ConVar sr_enable_free_oob("sr_enable_free_oob", "0");
 
 #if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
 	#include "hl_movedata.h"
@@ -1735,8 +1736,9 @@ void CGameMovement::AirAccelerate( Vector& wishdir, float wishspeed, float accel
 	accelspeed = accel * wishspeed * gpGlobals->frametime * player->m_surfaceFriction;
 
 	// Cap it
-	if (accelspeed > addspeed)
-		accelspeed = addspeed;
+	// HL1 MOVEMENT
+	if (accelspeed > ((ishl1movement) ? (addspeed * 2) : addspeed))
+		accelspeed = ((ishl1movement) ? (addspeed * 2) : addspeed);
 	
 	// Adjust pmove vel.
 	for (i=0 ; i<3 ; i++)
@@ -2407,7 +2409,8 @@ bool CGameMovement::CheckJumpButton( void )
 		return false;		// don't pogo stick
 
 	// Cannot jump will in the unduck transition.
-	if ( player->m_Local.m_bDucking && (  player->GetFlags() & FL_DUCKING ) )
+	// HL1 MOVEMENT
+	if (player->m_Local.m_bDucking && ( player->GetFlags() & FL_DUCKING ) && !ishl1movement)
 		return false;
 
 	// Still updating the eye position.
@@ -2432,8 +2435,18 @@ bool CGameMovement::CheckJumpButton( void )
 	if ( g_bMovementOptimizations )
 	{
 #if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
-		Assert( sv_gravity.GetFloat() == 600.0f );
-		flMul = 160.0f;	// approx. 21 units.
+		// HL1 MOVEMENT
+		if (ishl1movement)
+		{
+			Assert(sv_gravity.GetFloat() == 800.0f);
+			flMul = sqrt(2 * sv_gravity.GetFloat() * GAMEMOVEMENT_JUMP_HEIGHT);
+		}
+		else
+		{
+			Assert(sv_gravity.GetFloat() == 600.0f);
+			flMul = 160.0f;	// approx. 21 units.
+		}
+
 #else
 		Assert( sv_gravity.GetFloat() == 800.0f );
 		flMul = 268.3281572999747f;
@@ -2490,7 +2503,11 @@ bool CGameMovement::CheckJumpButton( void )
 			flSpeedAddition *= -1.0f;
 
 		// Add it on
-		VectorAdd( (vecForward*flSpeedAddition), mv->m_vecVelocity, mv->m_vecVelocity );
+		// HL1 MOVEMENT
+		if (!ishl1movement)
+		{
+			VectorAdd((vecForward * flSpeedAddition), mv->m_vecVelocity, mv->m_vecVelocity);
+		}
 	}
 #endif
 
@@ -2505,7 +2522,8 @@ bool CGameMovement::CheckJumpButton( void )
 	if ( gpGlobals->maxClients == 1 )
 	{
 		player->m_Local.m_flJumpTime = GAMEMOVEMENT_JUMP_TIME;
-		player->m_Local.m_bInDuckJump = true;
+		// HL1 MOVEMENT
+		player->m_Local.m_bInDuckJump = !ishl1movement;
 	}
 
 #if defined( HL2_DLL )
@@ -2640,7 +2658,7 @@ int CGameMovement::TryPlayerMove( Vector *pFirstDest, trace_t *pFirstTrace )
 				// If we detect getting stuck, don't allow the movement
 				trace_t stuck;
 				TracePlayerBBox( pm.endpos, pm.endpos, PlayerSolidMask(), COLLISION_GROUP_PLAYER_MOVEMENT, stuck );
-				if ( stuck.startsolid || stuck.fraction != 1.0f )
+				if ( (stuck.startsolid || stuck.fraction != 1.0f) && !sr_enable_free_oob.GetBool() )
 				{
 					//Msg( "Player will become stuck!!!\n" );
 					VectorCopy (vec3_origin, mv->m_vecVelocity);
@@ -3915,7 +3933,7 @@ void CGameMovement::FixPlayerCrouchStuck( bool upward )
 		return;
 	
 	VectorCopy( mv->GetAbsOrigin(), test );	
-	for ( i = 0; i < 36; i++ )
+	for ( i = 0; i < ((ishl1movement) ? 72 : 36); i++ )
 	{
 		Vector org = mv->GetAbsOrigin();
 		org.z += direction;
@@ -3940,16 +3958,24 @@ bool CGameMovement::CanUnduck()
 	{
 		for ( i = 0; i < 3; i++ )
 		{
-			newOrigin[i] += ( VEC_DUCK_HULL_MIN[i] - VEC_HULL_MIN[i] );
+			if (ishl1movement)
+			{
+				newOrigin[i] += (VEC_DUCK_HULL_MIN[i] + VEC_HULL_MIN[i]);
+			}
+			else
+			{
+				newOrigin[i] += (VEC_DUCK_HULL_MIN[i] - VEC_HULL_MIN[i]);
+			}
 		}
 	}
 	else
 	{
 		// If in air an letting go of crouch, make sure we can offset origin to make
 		//  up for uncrouching
-		Vector hullSizeNormal = VEC_HULL_MAX - VEC_HULL_MIN;
-		Vector hullSizeCrouch = VEC_DUCK_HULL_MAX - VEC_DUCK_HULL_MIN;
-		Vector viewDelta = ( hullSizeNormal - hullSizeCrouch );
+		// HL1 MOVEMENT
+		Vector hullSizeNormal = (ishl1movement) ? (VEC_HULL_MAX + VEC_HULL_MIN) : (VEC_HULL_MAX - VEC_HULL_MIN);
+		Vector hullSizeCrouch = (ishl1movement) ? (VEC_DUCK_HULL_MAX + VEC_DUCK_HULL_MIN) : (VEC_DUCK_HULL_MAX - VEC_DUCK_HULL_MIN);
+		Vector viewDelta = (ishl1movement) ? (hullSizeNormal + 36) : ( hullSizeNormal - hullSizeCrouch );
 		viewDelta.Negate();
 		VectorAdd( newOrigin, viewDelta, newOrigin );
 	}
@@ -4174,12 +4200,13 @@ bool CGameMovement::CanUnDuckJump( trace_t &trace )
 {
 	// Trace down to the stand position and see if we can stand.
 	Vector vecEnd( mv->GetAbsOrigin() );
-	vecEnd.z -= 36.0f;						// This will have to change if bounding hull change!
+	//HL1 MOVEMENT
+	vecEnd.z -= ((ishl1movement) ? 18.0f : 36.0f);		// This will have to change if bounding hull change!
 	TracePlayerBBox( mv->GetAbsOrigin(), vecEnd, PlayerSolidMask(), COLLISION_GROUP_PLAYER_MOVEMENT, trace );
 	if ( trace.fraction < 1.0f )
 	{
 		// Find the endpoint.
-		vecEnd.z = mv->GetAbsOrigin().z + ( -36.0f * trace.fraction );
+		vecEnd.z = mv->GetAbsOrigin().z + ( ((ishl1movement) ? -18.0f : -36.0f) * trace.fraction );
 
 		// Test a normal hull.
 		trace_t traceUp;

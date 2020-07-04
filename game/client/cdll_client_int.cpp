@@ -93,10 +93,16 @@
 #include "cdll_bounded_cvars.h"
 #include "matsys_controls/matsyscontrols.h"
 #include "GameStats.h"
+#include "../../lib/public/discord_rpc.h"
+#include <time.h>
+#include "shared.h"
+#include "shareddefs.h"
 
 #ifdef PORTAL
 #include "PortalRender.h"
 #endif
+
+bool ishl1movement = CommandLine()->CheckParm("-hl1movement");
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -231,6 +237,8 @@ void DispatchHudText( const char *pszName );
 static ConVar s_CV_ShowParticleCounts("showparticlecounts", "0", 0, "Display number of particles drawn per frame");
 static ConVar s_cl_team("cl_team", "default", FCVAR_USERINFO|FCVAR_ARCHIVE, "Default team when joining a game");
 static ConVar s_cl_class("cl_class", "default", FCVAR_USERINFO|FCVAR_ARCHIVE, "Default class when joining a game");
+static ConVar cl_discord_appid("cl_discord_appid", "728558535423688765", FCVAR_DEVELOPMENTONLY | FCVAR_CHEAT);
+static int64_t startTimestamp = time(0);
 
 // Physics system
 bool g_bLevelInitialized;
@@ -640,6 +648,42 @@ bool IsEngineThreaded()
 }
 
 //-----------------------------------------------------------------------------
+// Discord RPC
+//-----------------------------------------------------------------------------
+static void HandleDiscordReady(const DiscordUser* connectedUser)
+{
+	DevMsg("Discord: Connected to user %s#%s - %s\n",
+		connectedUser->username,
+		connectedUser->discriminator,
+		connectedUser->userId);
+}
+
+static void HandleDiscordDisconnected(int errcode, const char* message)
+{
+	DevMsg("Discord: Disconnected (%d: %s)\n", errcode, message);
+}
+
+static void HandleDiscordError(int errcode, const char* message)
+{
+	DevMsg("Discord: Error (%d: %s)\n", errcode, message);
+}
+
+static void HandleDiscordJoin(const char* secret)
+{
+	// Not implemented
+}
+
+static void HandleDiscordSpectate(const char* secret)
+{
+	// Not implemented
+}
+
+static void HandleDiscordJoinRequest(const DiscordUser* request)
+{
+	// Not implemented
+}
+
+//-----------------------------------------------------------------------------
 // Constructor
 //-----------------------------------------------------------------------------
 
@@ -867,6 +911,32 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 
 	C_BaseAnimating::InitBoneSetupThreadPool();
 
+	// Discord RPC
+	DiscordEventHandlers handlers;
+	memset(&handlers, 0, sizeof(handlers));
+
+	handlers.ready = HandleDiscordReady;
+	handlers.disconnected = HandleDiscordDisconnected;
+	handlers.errored = HandleDiscordError;
+	handlers.joinGame = HandleDiscordJoin;
+	handlers.spectateGame = HandleDiscordSpectate;
+	handlers.joinRequest = HandleDiscordJoinRequest;
+
+	char appid[255];
+	sprintf(appid, "%d", engine->GetAppID());
+	Discord_Initialize(cl_discord_appid.GetString(), &handlers, 1, appid);
+
+	if (!g_bTextMode)
+	{
+		DiscordRichPresence discordPresence;
+		memset(&discordPresence, 0, sizeof(discordPresence));
+
+		discordPresence.details = "Not in a run or game is loading";
+		discordPresence.state = "Not in a map";
+		//discordPresence.largeImageKey = "ModImageHere";
+		Discord_UpdatePresence(&discordPresence);
+	}
+
 	return true;
 }
 
@@ -910,6 +980,9 @@ void CHLClient::Shutdown( void )
 	VGui_Shutdown();
 	
 	ClearKeyValuesCache();
+
+	// Discord RPC
+	Discord_Shutdown();
 
 	DisconnectTier3Libraries( );
 	DisconnectTier2Libraries( );
@@ -1258,6 +1331,27 @@ void CHLClient::LevelInitPreEntity( char const* pMapName )
 	}
 #endif
 
+	// Discord RPC
+	if (!g_bTextMode)
+	{
+		DiscordRichPresence discordPresence;
+		memset(&discordPresence, 0, sizeof(discordPresence));
+
+		char buffer[256];
+		discordPresence.details = "Not in a run or game is loading";
+		if (ishl1movement)
+		{
+			sprintf(buffer, "HL1 Movement, map: %s", pMapName);
+		}
+		else
+		{
+			sprintf(buffer, "HL2 Movement, map: %s", pMapName);
+		}
+		discordPresence.state = buffer;
+		discordPresence.largeImageKey = "ModImageHere";
+		Discord_UpdatePresence(&discordPresence);
+	}
+
 	// Check low violence settings for this map
 	g_RagdollLVManager.SetLowViolence( pMapName );
 
@@ -1334,6 +1428,25 @@ void CHLClient::LevelShutdown( void )
 	StopAllRumbleEffects();
 
 	gHUD.LevelShutdown();
+
+	if (!g_bTextMode)
+	{
+		DiscordRichPresence discordPresence;
+		memset(&discordPresence, 0, sizeof(discordPresence));
+
+		discordPresence.details = "Not in a run or game is loading";
+
+		if (CommandLine()->CheckParm("-hl1movement"))
+		{
+			discordPresence.state = "HL1 Movement, not in a map";
+		}
+		else
+		{
+			discordPresence.state = "HL2 Movement, not in a map";
+		}
+		discordPresence.largeImageKey = "ModImageHere";
+		Discord_UpdatePresence(&discordPresence);
+	}
 
 	internalCenterPrint->Clear();
 

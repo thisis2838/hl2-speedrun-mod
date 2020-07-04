@@ -4,6 +4,7 @@
 #include "hud_macros.h"
 #include "iclientmode.h"
 #include "view.h"
+#include "../../lib/public/discord_rpc.h"
 
 using namespace vgui;
 
@@ -44,7 +45,7 @@ public:
 private:
 	int initialTall;
 	float m_flSecondsRecord;
-	float timedelta;
+	bool timedelta;
 	float m_flSecondsTime;
 	float totalTicks;
 	wchar_t m_pwCurrentTime[BUFSIZE];
@@ -112,13 +113,14 @@ void CHudTimer::MsgFunc_SpeedrunTimer_TimeToBeat(bf_read& msg)
 
 void CHudTimer::MsgFunc_SpeedrunTimer_TimeDelta(bf_read& msg)
 {
-	timedelta = msg.ReadFloat();
+	timedelta = msg.ReadOneBit();
 }
 
 
 void CHudTimer::MsgFunc_SpeedrunTimer_Time(bf_read& msg)
 {
 	totalTicks = msg.ReadFloat();
+	timedelta = false;
 }
 
 void CHudTimer::MsgFunc_SpeedrunTimer_StateChange(bf_read& msg)
@@ -172,12 +174,11 @@ const char* CHudTimer::SetFormattedCurrentTime(float input, bool removeexcess)
 	}
 
 	return printout;
-
 }
 
 void CHudTimer::Paint(void)
 {
-	Q_strcpy(m_pszString, SetFormattedCurrentTime(totalTicks * 0.015, false));
+	Q_strcpy(m_pszString, SetFormattedCurrentTime(totalTicks * gpGlobals->interval_per_tick, false));
 	Q_strcpy(m_pszStringpb, SetFormattedCurrentTime(m_flSecondsRecord, false));
 
 // msg.ReadString(m_pszString, sizeof(m_pszString));
@@ -204,11 +205,11 @@ void CHudTimer::Paint(void)
 	if (m_flSecondsRecord != 0)
 	{
 		float pb_text_ypos = text_ypos + surface()->GetFontTall(m_hTextFont) + 3;
-		float timedelta2 = totalTicks * 0.015 - m_flSecondsRecord;
+		float timedelta2 = totalTicks * gpGlobals->interval_per_tick - m_flSecondsRecord;
 
 		surface()->DrawSetTextFont(m_hTextFont);
 
-		if (m_flSecondsRecord != 0 && abs(timedelta2) <= sr_timer_pb_delta_viewlimit.GetFloat())
+		if (m_flSecondsRecord != 0 && timedelta2 >= -sr_timer_pb_delta_viewlimit.GetFloat() || timedelta)
 		{
 			char* delta = (timedelta2 < 0) ? "-" : "+";
 			surface()->DrawSetTextColor((timedelta2 < 0) ? Color(10, 255, 10, 255) : Color(255, 10, 10, 255));
@@ -220,12 +221,10 @@ void CHudTimer::Paint(void)
 
 			g_pVGuiLocalize->ConvertANSIToUnicode(txt, m_pwPBDelta, sizeof(m_pwPBDelta));
 
-			DevMsg("%s\n", txt); 
-
 			surface()->DrawSetTextPos(text_xpos, pb_text_ypos);
 			surface()->DrawPrintText(L"DELTA", wcslen(L"DELTA"));
 
-			surface()->DrawSetTextPos(digit_xpos - 2, pb_text_ypos);
+			surface()->DrawSetTextPos(digit_xpos, pb_text_ypos);
 			surface()->DrawPrintText(m_pwPBDelta, wcslen(m_pwPBDelta));
 		}
 		else

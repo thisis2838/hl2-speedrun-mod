@@ -25,7 +25,7 @@
 #include "tier0/memdbgon.h"
 
 static ConVar cl_showfps( "cl_showfps", "0", 0, "Draw fps meter at top of screen (1 = fps, 2 = smooth fps)" );
-static ConVar cl_showpos( "cl_showpos", "0", 0, "Draw current position at top of screen" );
+static ConVar cl_showpos( "cl_showpos", "0", 0, "Draw current position at top of screen, 1 = compounded velocity, 2 = axis-specific velocity" );
 
 extern bool g_bDisplayParticlePerformance;
 int GetParticlePerformance();
@@ -302,11 +302,20 @@ void CFPSPanel::Paint()
 			vel = player->GetLocalVelocity();
 		}
 
-		g_pMatSystemSurface->DrawColoredText( m_hFont, x, 2 + i * ( vgui::surface()->GetFontTall( m_hFont ) + 2 ), 
-											  255, 255, 255, 255, 
-											  "vel:  %.2f", 
-											  vel.Length() );
-
+		if (nShowPosMode < 2)
+		{
+			g_pMatSystemSurface->DrawColoredText(m_hFont, x, 2 + i * (vgui::surface()->GetFontTall(m_hFont) + 2),
+				255, 255, 255, 255,
+				"vel:  %.2f",
+				vel.Length());
+		}
+		else
+		{
+			g_pMatSystemSurface->DrawColoredText(m_hFont, x, 2 + i * (vgui::surface()->GetFontTall(m_hFont) + 2),
+				255, 255, 255, 255,
+				"vel:  %.02f %.02f %.02f",
+				vel.x, vel.y, vel.z);
+		}
 		if (CHavokMirror::shouldDrawHavokPos())
 		{
 			i += CHavokMirror::shouldDrawHavokMirror() ? 12 : 1;
@@ -320,11 +329,20 @@ void CFPSPanel::Paint()
 			static Vector havokvel(0, 0, 0);
 			havokvel = havokspd;
 
-			g_pMatSystemSurface->DrawColoredText(m_hFont, x, 2 + i * (vgui::surface()->GetFontTall(m_hFont) + 2),
-				255, 255, 255, 255,
-				"havok vel:  %.02f",
-				havokvel.Length());
-
+			if (nShowPosMode < 2)
+			{
+				g_pMatSystemSurface->DrawColoredText(m_hFont, x, 2 + i * (vgui::surface()->GetFontTall(m_hFont) + 2),
+					255, 255, 255, 255,
+					"havok vel:  %.02f",
+					havokvel.Length());
+			}
+			else
+			{
+				g_pMatSystemSurface->DrawColoredText(m_hFont, x, 2 + i * (vgui::surface()->GetFontTall(m_hFont) + 2),
+					255, 255, 255, 255,
+					"havok vel:  %.02f %.02f %.02f",
+					havokvel.x, havokvel.y, havokvel.z);
+			}
 			i++;
 		}
 	}

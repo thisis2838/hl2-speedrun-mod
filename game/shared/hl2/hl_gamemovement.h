@@ -44,6 +44,17 @@ public:
 	virtual void	SetGroundEntity( trace_t *pm );
 	virtual bool CanAccelerate( void );
 
+	// HL1 MOVEMENT
+	virtual bool CheckJumpButton(void);
+
+	// Duck
+	virtual void Duck(void);
+	virtual void FinishUnDuck(void);
+	virtual void FinishDuck(void);
+	virtual bool CanUnduck();
+	virtual void HandleDuckingSpeedCrop();
+	virtual void CheckParameters(void);
+
 	virtual unsigned int PlayerSolidMask( bool brushOnly = false );
 
 private:

@@ -4,6 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================//
+#include <tier0\icommandline.h>
 
 #ifndef SHAREDDEFS_H
 #define SHAREDDEFS_H
@@ -12,7 +13,6 @@
 #endif
 
 #define TICK_INTERVAL			(gpGlobals->interval_per_tick)
-
 
 #define TIME_TO_TICKS( dt )		( (int)( 0.5f + (float)(dt) / TICK_INTERVAL ) )
 #define TICKS_TO_TIME( t )		( TICK_INTERVAL *( t ) )
@@ -304,13 +304,13 @@ enum PLAYER_ANIM
 #define PLAYER_MIN_BOUNCE_SPEED		173
 #define PLAYER_FALL_PUNCH_THRESHOLD 303.0f // won't punch player's screen/make scrape noise unless player falling at least this fast - at least a 76" fall (sqrt( 2 * g * 76))
 #else
-#define PLAYER_FATAL_FALL_SPEED		1024 // approx 60 feet
-#define PLAYER_MAX_SAFE_FALL_SPEED	580 // approx 20 feet
+#define PLAYER_FATAL_FALL_SPEED		(CommandLine()->CheckParm("-hl1movement") ? 1536 : 1024) // approx 60 feet
+#define PLAYER_MAX_SAFE_FALL_SPEED	(CommandLine()->CheckParm("-hl1movement") ? 768  : 580 ) // approx 20 feet
 #define PLAYER_LAND_ON_FLOATING_OBJECT	200 // Can go another 200 units without getting hurt
 #define PLAYER_MIN_BOUNCE_SPEED		200
 #define PLAYER_FALL_PUNCH_THRESHOLD (float)350 // won't punch player's screen/make scrape noise unless player falling at least this fast.
 #endif
-#define DAMAGE_FOR_FALL_SPEED		100.0f / ( PLAYER_FATAL_FALL_SPEED - PLAYER_MAX_SAFE_FALL_SPEED ) // damage per unit per second.
+#define DAMAGE_FOR_FALL_SPEED		(CommandLine()->CheckParm("-hl1movement") ? 100.0f  : 60.0f ) / ( PLAYER_FATAL_FALL_SPEED - PLAYER_MAX_SAFE_FALL_SPEED ) // damage per unit per second.
 
 
 #define AUTOAIM_2DEGREES  0.0348994967025
@@ -840,4 +840,4 @@ enum tprbGameInfo_e
 #ifdef SDK_DLL
 #include "sdk_shareddefs.h"
 #endif
-#endif // SHAREDDEFS_H
+#endif // SHAREDDEFS_

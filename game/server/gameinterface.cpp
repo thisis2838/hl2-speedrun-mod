@@ -85,10 +85,11 @@
 #include "steam/steam_api.h"
 #include "tier3/tier3.h"
 #include "serverbenchmark_base.h"
-
 #include "srtimer_calc.h"
 #include "srtimer_count.h"
 #include "srtimer_handle_startandend.cpp"
+
+bool ishl1movement;
 
 CUtlVector<TickCounter*> counters;
 
@@ -109,6 +110,21 @@ extern IToolFrameworkServer* g_pToolFrameworkServer;
 extern IParticleSystemQuery* g_pParticleSystemQuery;
 
 extern ConVar commentary;
+
+
+void hl1movementnotice(const CCommand& args)
+{
+	if (!ishl1movement)
+	{
+		Msg("To switch gamemode to HL1 Movement, please restart the game with the launch paramter -hl1movement.\n");
+	}
+	else
+	{
+		Msg("You are already in HL1 Movement mode!\n");
+	}
+}
+
+static ConCommand sr_enable_hl1movement("sr_enable_hl1movement", hl1movementnotice);
 
 static CSteamAPIContext g_SteamAPIContext;
 CSteamAPIContext* steamapicontext = &g_SteamAPIContext;
@@ -768,8 +784,6 @@ void CServerGameDLL::DLLShutdown(void)
 	ConVar_Unregister();
 	DisconnectTier1Libraries();
 }
-
-
 //-----------------------------------------------------------------------------
 // Purpose: See shareddefs.h for redefining this.  Don't even think about it, though, for HL2.  Or you will pay.  ywb 9/22/03
 // Output : float
@@ -784,7 +798,6 @@ float CServerGameDLL::GetTickInterval(void) const
 #endif
 
 	// Ignoring this for now, server ops are abusing it
-#if !defined( TF_DLL )
 	// override if tick rate specified in command line
 	if (CommandLine()->CheckParm("-tickrate"))
 	{
@@ -792,7 +805,20 @@ float CServerGameDLL::GetTickInterval(void) const
 		if (tickrate > 10)
 			tickinterval = 1.0f / tickrate;
 	}
-#endif
+
+	// HL1 MOVEMENT
+	if (CommandLine()->CheckParm("-hl1movement"))
+	{
+		tickinterval = 0.010f;
+		engine->ServerCommand("hl2_walkspeed 320\n hl2_normspeed 320\n sv_gravity 800\n");
+		engine->ServerExecute();
+		Msg("\n\nYou are now playing with HL1 Movement! \nThings that are different:\n- Movement emulates HL1's movement\n- Player always movse at 320UPS\n- +speed slows the player down\n- Autojump is always enabled\n- Fall damage values are changed\n- SMG fire rate lowered\n- Tickrate lowered to 0.01\n\n");
+		ishl1movement = true;
+	}
+	else
+	{
+		ishl1movement = false;
+	}
 
 	return tickinterval;
 }

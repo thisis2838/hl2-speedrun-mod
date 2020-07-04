@@ -1500,6 +1500,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "bin"
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\lib\public\choreoobjects.lib" />
+    <Library Include="..\..\lib\public\discord-rpc.lib" />
     <Library Include="..\..\lib\public\dmxloader.lib" />
     <Library Include="..\..\lib\public\mathlib.lib" />
     <Library Include="..\..\lib\public\Particles.lib" />

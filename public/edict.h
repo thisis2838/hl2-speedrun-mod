@@ -34,7 +34,6 @@ enum MapLoadType_t
 	MapLoad_Background,
 };
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Global variables shared between the engine and the game .dll
 //-----------------------------------------------------------------------------
@@ -45,6 +44,8 @@ public:
 	CGlobalVars( bool bIsClient );
 
 public:
+
+
 	
 	// Current map
 	string_t		mapname;
