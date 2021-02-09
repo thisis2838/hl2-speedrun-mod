@@ -812,7 +812,7 @@ float CServerGameDLL::GetTickInterval(void) const
 		tickinterval = 0.010f;
 		engine->ServerCommand("hl2_walkspeed 320\n hl2_normspeed 320\n sv_gravity 800\n");
 		engine->ServerExecute();
-		Msg("\n\nYou are now playing with HL1 Movement! \nThings that are different:\n- Movement emulates HL1's movement\n- Player always movse at 320UPS\n- +speed slows the player down\n- Autojump is always enabled\n- Fall damage values are changed\n- SMG fire rate lowered\n- Tickrate lowered to 0.01\n\n");
+		Msg("\n\nYou are now playing with HL1 Movement! \nThings that are different:\n- Movement emulates HL1's movement\n- Player always moves at 320UPS\n- +speed slows the player down\n- Autojump is always enabled\n- Fall damage values are changed\n- SMG fire rate lowered\n- Tickrate lowered to 0.01\n\n");
 		ishl1movement = true;
 	}
 	else

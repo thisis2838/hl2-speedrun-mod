@@ -99,6 +99,8 @@ bool IsListeningToCommentary( void );
 // This is declared in the engine, too
 ConVar	sv_noclipduringpause( "sv_noclipduringpause", "0", FCVAR_REPLICATED | FCVAR_CHEAT, "If cheats are enabled, then you can noclip with the game paused (for doing screenshots, etc.)." );
 
+static ConVar sr_disable_propclips("sr_disable_propclips", "0");
+
 extern ConVar sv_maxunlag;
 extern ConVar sv_turbophysics;
 extern ConVar *sv_maxreplay;
@@ -4289,7 +4291,12 @@ void CBasePlayer::UpdatePlayerSound ( void )
 // than fixing the problem :(
 void FixPlayerCrouchStuck( CBasePlayer *pPlayer )
 {
+
+	if (sr_disable_propclips.GetBool())
+		return;
+
 	trace_t trace;
+
 
 	// Move up as many as 18 pixels if the player is stuck.
 	int i;

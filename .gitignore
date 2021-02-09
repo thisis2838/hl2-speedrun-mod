@@ -347,3 +347,7 @@ game/client/client_episodic-2005.vcxproj
 *.tlog
 *.tlog
 *.tlog
+*.map
+*.dll
+*.exp
+*.lib

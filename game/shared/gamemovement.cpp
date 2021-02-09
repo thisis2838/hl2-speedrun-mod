@@ -513,6 +513,7 @@ static void Validate( bool bServer, int nCommandNumber )
 
 void CGameMovement::DiffPrint( char const *fmt, ... )
 {
+	//DevMsg(fmt);
 }
 
 #endif // !PREDICTION_ERROR_CHECK_LEVEL
@@ -1154,9 +1155,9 @@ void CGameMovement::ProcessMovement( CBasePlayer *pPlayer, CMoveData *pMove )
 	mv = pMove;
 	mv->m_flMaxSpeed = sv_maxspeed.GetFloat();
 
-	// CheckV( player->CurrentCommandNumber(), "StartPos", mv->GetAbsOrigin() );
+	//CheckV( player->CurrentCommandNumber(), "StartPos", mv->GetAbsOrigin() );
 
-	DiffPrint( "start %f %f %f", mv->GetAbsOrigin().x, mv->GetAbsOrigin().y, mv->GetAbsOrigin().z );
+	DiffPrint( "start %f %f %f \n", mv->GetAbsOrigin().x, mv->GetAbsOrigin().y, mv->GetAbsOrigin().z );
 
 	// Run the command.
 	PlayerMove();
